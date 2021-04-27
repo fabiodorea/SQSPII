@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "DataSourceConfig")
+@Table(name = "spi_usuario_dados_acesso")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UsuarioDadosAcesso implements Serializable {
@@ -66,35 +66,25 @@ public class UsuarioDadosAcesso implements Serializable {
     @Column(name = "dsc_tok_grp")
     private String descricaoTokenGrupo;
 
-//    @Column(name = "dsc_ser_con")
-//    private String driverClassName;
+    @Column(name = "cod_tip_bd")
+    private String dataBaseTypeCode;
 
-//    @Column(name = "dsc_ser_con")
-//    private boolean initialize;
-
-    public String getDriverClassName() {
-        return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+    public String getDriverClassName() throws Exception {
+        if(dataBaseTypeCode.equalsIgnoreCase("Q")) {
+            return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+        }else{
+            throw new Exception("Tipo de banco de dados nao implementado: " + dataBaseTypeCode);
+        }
     }
 
-    public String getUrl() {
-        return "jdbc:sqlserver://"+ server +":1433;databaseName=" + databaseName + ";integratedSecurity=true";
+    public String getUrl() throws Exception {
+        if(server.indexOf(",") > 0) {
+            String servidor = server.split(",")[0];
+            String porta = server.split(",")[1];
+            return "jdbc:sqlserver://"+ servidor +":" + porta + ";databaseName=" + databaseName + ";integratedSecurity=true";
+        }else{
+            throw new Exception("O valor do servidor esta sem a porta: " + server);
+        }
     }
 
-    public boolean isInitialize() {
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("DataSourceConfig{");
-        sb.append("id=").append(id);
-        sb.append(", name='").append(userCode).append('\'');
-        sb.append(", url='").append(getUrl()).append('\'');
-        sb.append(", username='").append(dbUserName).append('\'');
-        sb.append(", password='").append(dbPassword).append('\'');
-        sb.append(", driverClassName='").append(getDriverClassName()).append('\'');
-        sb.append(", initialize=").append(isInitialize());
-        sb.append('}');
-        return sb.toString();
-    }
 }

@@ -26,7 +26,7 @@ public class TenantDataSource implements Serializable {
     @Autowired
     private UsuarioDadosAcessoRepository configRepo;
 
-    public DataSource getDataSource(String name) {
+    public DataSource getDataSource(String name) throws Exception {
         if (dataSources.get(name) != null) {
             return dataSources.get(name);
         }
@@ -39,16 +39,22 @@ public class TenantDataSource implements Serializable {
 
     @PostConstruct
     public Map<String, DataSource> getAll() {
-        List<UsuarioDadosAcesso> configList = configRepo.findAll();
-        Map<String, DataSource> result = new HashMap<>();
-        for (UsuarioDadosAcesso config : configList) {
-            DataSource dataSource = getDataSource(config.getUserCode());
-            result.put(config.getUserCode(), dataSource);
+        try {
+            List<UsuarioDadosAcesso> configList = configRepo.findAll();
+            Map<String, DataSource> result = new HashMap<>();
+            for (UsuarioDadosAcesso config : configList) {
+                DataSource dataSource = getDataSource(config.getUserCode());
+                result.put(config.getUserCode(), dataSource);
+            }
+            return result;
+        }catch (Exception e) {
+            System.out.println("Ocorreu um erro ao consultar dados do tenant " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
-        return result;
     }
 
-    private DataSource createDataSource(String name) {
+    private DataSource createDataSource(String name) throws Exception {
         UsuarioDadosAcesso config = configRepo.findByUserCode(name);
         if (config != null) {
             DataSourceBuilder<?> factory = DataSourceBuilder
