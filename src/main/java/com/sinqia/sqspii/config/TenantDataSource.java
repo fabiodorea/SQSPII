@@ -13,8 +13,8 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 //import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.stereotype.Component;
 
-import com.sinqia.sqspii.entity.DataSourceConfig;
-import com.sinqia.sqspii.repository.DataSourceConfigRepository;
+import com.sinqia.sqspii.entity.UsuarioDadosAcesso;
+import com.sinqia.sqspii.repository.UsuarioDadosAcessoRepository;
 
 @Component
 public class TenantDataSource implements Serializable {
@@ -24,7 +24,7 @@ public class TenantDataSource implements Serializable {
     private HashMap<String, DataSource> dataSources = new HashMap<>();
 
     @Autowired
-    private DataSourceConfigRepository configRepo;
+    private UsuarioDadosAcessoRepository configRepo;
 
     public DataSource getDataSource(String name) {
         if (dataSources.get(name) != null) {
@@ -39,27 +39,27 @@ public class TenantDataSource implements Serializable {
 
     @PostConstruct
     public Map<String, DataSource> getAll() {
-        List<DataSourceConfig> configList = configRepo.findAll();
+        List<UsuarioDadosAcesso> configList = configRepo.findAll();
         Map<String, DataSource> result = new HashMap<>();
-        for (DataSourceConfig config : configList) {
-            DataSource dataSource = getDataSource(config.getName());
-            result.put(config.getName(), dataSource);
+        for (UsuarioDadosAcesso config : configList) {
+            DataSource dataSource = getDataSource(config.getUserCode());
+            result.put(config.getUserCode(), dataSource);
         }
         return result;
     }
 
     private DataSource createDataSource(String name) {
-        DataSourceConfig config = configRepo.findByName(name);
+        UsuarioDadosAcesso config = configRepo.findByUserCode(name);
         if (config != null) {
             DataSourceBuilder<?> factory = DataSourceBuilder
                     .create().driverClassName(config.getDriverClassName())
-                    .username(config.getUsername())
-                    .password(config.getPassword())
+                    .username(config.getDbUserName())
+                    .password(config.getDbPassword())
                     .url(config.getUrl());
-            DataSource ds = factory.build();     
+            DataSource ds = factory.build();
             return ds;
         }
         return null;
-    }   
+    }
 
 }
