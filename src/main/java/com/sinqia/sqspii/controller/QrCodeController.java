@@ -78,7 +78,7 @@ public class QrCodeController {
     @GetMapping(path = "/public/pix/{tenant}/{document-id}", produces = "application/json")
     @Operation(summary = "Consulta QrCode dinâmico", description = "Endpoint responsável pela consulta de um qrcode dinâmico a partir do tenant e do codigo.")
     public ResponseEntity<DefaultResponse> getPayload(@PathVariable("document-id") String documentId, @PathVariable("tenant") String tenant) throws Exception {
-        String code = dynamicQrCodeService.createPayloadByIdentifier(documentId);
+        String code = dynamicQrCodeService.createPayloadByIdentifier(documentId, tenant);
         return ResponseEntity.ok(SuccessResponse.builder()
                 .code(SuccessCode.PAYLOAD_GENERATED.getCode())
                 .message(SuccessCode.PAYLOAD_GENERATED.getMessage())

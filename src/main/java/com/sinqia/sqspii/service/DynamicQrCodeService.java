@@ -2,6 +2,7 @@ package com.sinqia.sqspii.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sinqia.sqspii.context.TenantContext;
 import com.sinqia.sqspii.entity.AdditionalInformation;
 import com.sinqia.sqspii.entity.AuditDynamicQrCode;
 import com.sinqia.sqspii.entity.DynamicQrCode;
@@ -189,7 +190,7 @@ public class DynamicQrCodeService {
     }
 
     @Transactional
-    public String createPayloadByIdentifier(String documentId) throws Exception {
+    public String createPayloadByIdentifier(String documentId, String tenant) throws Exception {
         UUID uuid = UUID.fromString(documentId);
         DynamicQrCode dynamic = dynamicQrCodeRepository.findByPayloadIdentifier(uuid)
                 .orElseThrow(() -> new BusinessException("Documento não encontrado!"));

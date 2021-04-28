@@ -5,12 +5,14 @@ import com.sinqia.sqspii.domain.DynamicQrCodeData;
 import com.sinqia.sqspii.domain.QrCodeField;
 import com.sinqia.sqspii.entity.DynamicQrCode;
 
+import com.sinqia.sqspii.entity.Parameter;
 import com.sinqia.sqspii.enums.EnumBoolean;
+import com.sinqia.sqspii.repository.ParameterRepository;
 import com.sinqia.sqspii.request.DynamicQrCodeRequest;
 import com.sinqia.sqspii.response.DecodeDynamicQrCodeResponse;
 import com.sinqia.sqspii.util.ValidationUtil;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,13 +25,10 @@ import java.util.Locale;
 @Component
 public class DynamicQRCodeBuilderFactory {
 
-    @Value("${pix.dynamic-json.path}")
-    private String dynamicJsonPath;
-
-    @Value("${pix.host}")
-    private String host;
-
     private static NumberFormat format = NumberFormat.getNumberInstance(Locale.US);
+
+    @Autowired
+    private ParameterRepository parameterRepository;
 
     static {
         format.setMinimumFractionDigits(2);
@@ -77,7 +76,10 @@ public class DynamicQRCodeBuilderFactory {
         key.setValue(data.getKey());
         key.setSize(key.getValue().length());
 
-        url.setValue(host + dynamicJsonPath + "/" + TenantContext.getCurrentTenant() + "/" + data.getPayloadIdentifier());
+        Parameter parameter = parameterRepository.findAll().stream().findFirst().orElseThrow(() ->
+                new RuntimeException("Nenhuma parametrização encontrada para o usuário: " + TenantContext.getCurrentTenant()));
+
+        url.setValue(parameter.getHostName() + "/" + TenantContext.getCurrentTenant() + "/" + data.getPayloadIdentifier());
         url.setSize(url.getValue().length());
 
         merchantInfo.setValue(gui.toString() + key.toString() + url.toString());
@@ -104,10 +106,12 @@ public class DynamicQRCodeBuilderFactory {
     public DecodeDynamicQrCodeResponse buildDecodeDynamicQrCodeResponse(DynamicQrCode dynamicQrCode) {
         LocalDateTime tempDateTime = LocalDateTime.from(dynamicQrCode.getCreated());
 
+        Parameter parameter = parameterRepository.findAll().stream().findFirst().orElseThrow(() ->
+                new RuntimeException("Nenhuma parametrização encontrada para o usuário: " + TenantContext.getCurrentTenant()));
 
         return DecodeDynamicQrCodeResponse.builder()
                 .qrCodeType("dynamic")
-                .payloadUrl(host + dynamicJsonPath + "/" + dynamicQrCode.getPayloadIdentifier())
+                .payloadUrl(parameter.getHostName() + "/" + TenantContext.getCurrentTenant() + "/" + dynamicQrCode.getPayloadIdentifier())
                 .key(dynamicQrCode.getKey())
                 .merchantName(dynamicQrCode.getReceiverName())
                 .city(dynamicQrCode.getCity())

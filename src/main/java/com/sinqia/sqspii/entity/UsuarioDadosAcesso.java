@@ -81,7 +81,7 @@ public class UsuarioDadosAcesso implements Serializable {
         if(server.indexOf(",") > 0) {
             String servidor = server.split(",")[0];
             String porta = server.split(",")[1];
-            return "jdbc:sqlserver://"+ servidor +":" + porta + ";databaseName=" + databaseName + ";integratedSecurity=true";
+            return "jdbc:sqlserver://"+ servidor +":" + porta + ";databaseName=" + databaseName + ";";
         }else{
             throw new Exception("O valor do servidor esta sem a porta: " + server);
         }

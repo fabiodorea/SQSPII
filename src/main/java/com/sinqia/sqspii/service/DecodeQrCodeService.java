@@ -21,18 +21,25 @@ import com.sinqia.sqspii.response.DecodeQrCodeResponse;
 import com.sinqia.sqspii.response.DecodeStaticQrCodeResponse;
 import com.sinqia.sqspii.response.SuccessResponse;
 import org.apache.commons.codec.binary.Base64;
+import org.keycloak.KeycloakPrincipal;
+import org.keycloak.KeycloakSecurityContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.ParseException;
 
@@ -54,7 +61,7 @@ public class DecodeQrCodeService {
     @Autowired
     private RestTemplate restTemplate;
 
-    public DecodeQrCodeResponse decode(DecodeQrCodeRequest message) throws IOException, ParseException, JOSEException {
+    public DecodeQrCodeResponse decode(DecodeQrCodeRequest message) throws IOException, ParseException, JOSEException, URISyntaxException {
 
         if (StringUtils.isEmpty(message.getQrCodeString()))
             throw new InvalidQrCodeStringToDecodeException();
@@ -69,15 +76,19 @@ public class DecodeQrCodeService {
         }
     }
 
-    private String decodeDynamicQrCode(String dynamicQrCodeString) throws JsonProcessingException {
+    private String decodeDynamicQrCode(String dynamicQrCodeString) throws JsonProcessingException, URISyntaxException {
         String url = dynamicQRCodeBuilderFactory.getQrCodePayloadUrl(dynamicQrCodeString);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        KeycloakPrincipal<KeycloakSecurityContext> kp = (KeycloakPrincipal<KeycloakSecurityContext>) authentication.getPrincipal();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("X-TenantID", TenantContext.getCurrentTenant());
+        headers.setBearerAuth(kp.getKeycloakSecurityContext().getTokenString());
 
         HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
-        ResponseEntity<String> response = restTemplate.exchange("http://" + url, HttpMethod.GET, entity, String.class);
+
+        ResponseEntity<String> response = restTemplate.exchange(RequestEntity.get(new URI(url)).headers(headers).build(), String.class);
 
 
         SuccessResponse json = mapper.readValue(response.getBody(), SuccessResponse.class);
