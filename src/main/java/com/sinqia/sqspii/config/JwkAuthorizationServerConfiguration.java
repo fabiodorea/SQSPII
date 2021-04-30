@@ -5,15 +5,19 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.util.Base64URL;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -24,6 +28,7 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Enumeration;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableAuthorizationServer
@@ -56,13 +61,13 @@ public class JwkAuthorizationServerConfiguration {
     public X509Certificate load509Certificate() throws Exception {
         try {
 
-            File resource = new ClassPathResource(
-                    KEY_STORE_FILE).getFile();
+            InputStream resource = new ClassPathResource(
+                    KEY_STORE_FILE).getInputStream();
             boolean isAliasWithPrivateKey = false;
             KeyStore keyStore = KeyStore.getInstance("JKS");
 
             // Provide location of Java Keystore and password for access
-            keyStore.load(new FileInputStream(resource), KEY_STORE_PASSWORD.toCharArray());
+            keyStore.load(resource, KEY_STORE_PASSWORD.toCharArray());
 
             // iterate over all aliases
             Enumeration<String> es = keyStore.aliases();
