@@ -1,64 +1,85 @@
 package com.sinqia.sqspii.config;
 
 import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.util.Base64URL;
+import com.sinqia.sqspii.context.TenantContext;
+import com.sinqia.sqspii.entity.DigitalCertificate;
+import com.sinqia.sqspii.entity.UsuarioDadosAcesso;
+import com.sinqia.sqspii.repository.DigitalCertificateRepository;
+import com.sinqia.sqspii.repository.UsuarioDadosAcessoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
-import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyPair;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
+import java.io.ByteArrayInputStream;
+import java.security.PublicKey;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Enumeration;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Configuration
-@EnableAuthorizationServer
 public class JwkAuthorizationServerConfiguration {
 
-    private static final String KEY_STORE_FILE = "sqsp-jwt.jks";
-    private static final String KEY_STORE_PASSWORD = "sqsp-pass";
-    private static final String KEY_ALIAS = "sqsp-oauth-jwt";
-    public static final String JWK_KID = "sqsp-key-id";
+    @Autowired
+    private DigitalCertificateRepository repository;
 
-    @Bean
-    public KeyPair keyPair() {
-        ClassPathResource ksFile = new ClassPathResource(KEY_STORE_FILE);
-        KeyStoreKeyFactory ksFactory = new KeyStoreKeyFactory(ksFile, KEY_STORE_PASSWORD.toCharArray());
-        return ksFactory.getKeyPair(KEY_ALIAS);
-    }
+    @Autowired
+    private UsuarioDadosAcessoRepository configRepo;
 
     @Bean
     public JWKSet jwkSet() throws Exception {
-        RSAKey.Builder builder = new RSAKey.Builder((RSAPublicKey) keyPair().getPublic())
-                .keyUse(KeyUse.SIGNATURE)
-                .algorithm(JWSAlgorithm.RS256)
-                .privateKey((RSAPrivateKey) keyPair().getPrivate())
-                .x509CertThumbprint(Base64URL.encode((load509Certificate()).getEncoded()))
-                .keyID(JWK_KID);
+        List<UsuarioDadosAcesso> configList = configRepo.findAll();
+        List<JWK> keys = new ArrayList<>();
 
-        return new JWKSet(builder.build());
+        for (UsuarioDadosAcesso uda : configList) {
+            TenantContext.setCurrentTenant(uda.getUserCode());
+            List<DigitalCertificate> certificates;
+
+            try {
+                certificates = repository.findAll();
+            } catch (Exception e) {
+                continue;
+            }
+
+            certificates.forEach(cert -> {
+                try {
+                    X509Certificate certificate = parseCertificate(cert.getDescriptionCertificate());
+
+                    if (certificate != null) {
+                        RSAKey.Builder builder = new RSAKey.Builder((RSAPublicKey) getPublicKey(cert.getDescriptionCertificate()))
+                                .keyUse(KeyUse.SIGNATURE)
+                                .algorithm(JWSAlgorithm.RS256)
+                                .x509CertThumbprint(Base64URL.encode(certificate.getEncoded()))
+                                .keyID(String.valueOf(cert.getId()));
+                        keys.add(builder.build());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+        return new JWKSet(keys);
     }
 
-    public X509Certificate load509Certificate() throws Exception {
+    public static X509Certificate parseCertificate(String certStr) {
+        try {
+            return (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(certStr.getBytes()));
+        } catch (CertificateException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+   /* public X509Certificate load509Certificate() throws Exception {
         try {
 
             InputStream resource = new ClassPathResource(
@@ -90,6 +111,10 @@ public class JwkAuthorizationServerConfiguration {
             e.printStackTrace();
         }
         throw new Exception("Fail to load 509Certificate");
+    }*/
+
+    public static PublicKey getPublicKey(String certificate) {
+        return Objects.requireNonNull(parseCertificate(certificate)).getPublicKey();
     }
 
 }

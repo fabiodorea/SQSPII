@@ -30,10 +30,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.springframework.security.oauth.boot</groupId>
-			<artifactId>spring-security-oauth2-autoconfigure</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
@@ -103,11 +99,6 @@
 			<artifactId>nimbus-jose-jwt</artifactId>
 			<version>9.0.1</version>
 		</dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <version>5.2.9.RELEASE</version>
-        </dependency>
     </dependencies>
 
 	<dependencyManagement>

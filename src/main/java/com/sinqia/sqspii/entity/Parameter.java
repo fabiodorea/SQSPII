@@ -26,6 +26,9 @@ public class Parameter implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_par_ger")
     private Long id;
+
+    @Column(name = "id_ent_par ")
+    private Long idEntPar;
     
     @Column(name = "nom_hst_url_pyl_qrc", length = 100, nullable = true)
     private String hostName;

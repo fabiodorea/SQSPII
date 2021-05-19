@@ -11,11 +11,13 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.sinqia.sqspii.config.JwkAuthorizationServerConfiguration;
 import com.sinqia.sqspii.context.TenantContext;
 import com.sinqia.sqspii.domain.StaticQrCodeData;
+import com.sinqia.sqspii.entity.DigitalCertificate;
 import com.sinqia.sqspii.entity.DynamicQrCode;
 import com.sinqia.sqspii.exception.InvalidQrCodeStringToDecodeException;
 import com.sinqia.sqspii.exception.UnableToDecodeQrCodeException;
 import com.sinqia.sqspii.factory.DynamicQRCodeBuilderFactory;
 import com.sinqia.sqspii.factory.StaticQRCodeBuilderFactory;
+import com.sinqia.sqspii.repository.DigitalCertificateRepository;
 import com.sinqia.sqspii.request.DecodeQrCodeRequest;
 import com.sinqia.sqspii.response.DecodeQrCodeResponse;
 import com.sinqia.sqspii.response.DecodeStaticQrCodeResponse;
@@ -61,6 +63,9 @@ public class DecodeQrCodeService {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private DigitalCertificateRepository digitalCertificateRepository;
+
     public DecodeQrCodeResponse decode(DecodeQrCodeRequest message) throws IOException, ParseException, JOSEException, URISyntaxException {
 
         if (StringUtils.isEmpty(message.getQrCodeString()))
@@ -69,14 +74,13 @@ public class DecodeQrCodeService {
         try {
             return decodeStaticQrCode(message.getQrCodeString());
         } catch (NumberFormatException e) {
-            String payloadUrl = decodeDynamicQrCode(message.getQrCodeString());
-            return decodeJwsPayload(payloadUrl);
-        } catch (Exception e){
+            return decodeDynamicQrCode(message.getQrCodeString());
+        } catch (Exception e) {
             throw new UnableToDecodeQrCodeException();
         }
     }
 
-    private String decodeDynamicQrCode(String dynamicQrCodeString) throws JsonProcessingException, URISyntaxException {
+    private DecodeQrCodeResponse decodeDynamicQrCode(String dynamicQrCodeString) throws IOException, URISyntaxException, ParseException, JOSEException {
         String url = dynamicQRCodeBuilderFactory.getQrCodePayloadUrl(dynamicQrCodeString);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -86,22 +90,28 @@ public class DecodeQrCodeService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(kp.getKeycloakSecurityContext().getTokenString());
 
-        HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
-
         ResponseEntity<String> response = restTemplate.exchange(RequestEntity.get(new URI(url)).headers(headers).build(), String.class);
 
 
         SuccessResponse json = mapper.readValue(response.getBody(), SuccessResponse.class);
 
-        return (String) json.getBody();
+        String host = getDomainName(url);
+        DigitalCertificate dc = digitalCertificateRepository.findByHost(host).orElseThrow(() -> new RuntimeException("Digital Certificate not found for: " + host));
+
+        return decodeJwsPayload((String) json.getBody(), dc.getId().toString());
+    }
+
+    public static String getDomainName(String url) throws URISyntaxException {
+        URI uri = new URI(url);
+        return uri.getScheme() + "://" + uri.getAuthority();
     }
 
 
-    private DecodeQrCodeResponse decodeJwsPayload(String jwsPayload) throws IOException, ParseException, JOSEException {
-        RSAKey rsaKey = jwkSet.getKeyByKeyId(JwkAuthorizationServerConfiguration.JWK_KID).toRSAKey();
+    private DecodeQrCodeResponse decodeJwsPayload(String jwsPayload, String kid) throws IOException, ParseException, JOSEException {
+        RSAKey rsaKey = jwkSet.getKeyByKeyId(kid).toRSAKey();
 
         // Load JWK set from URL
-        JWKSet publicKeys = JWKSet.load(new URL(wellKnowUrl));
+        //JWKSet publicKeys = JWKSet.load(new URL(wellKnowUrl));
 
         JWSVerifier verifier = new RSASSAVerifier(rsaKey.toPublicJWK().toRSAKey());
 

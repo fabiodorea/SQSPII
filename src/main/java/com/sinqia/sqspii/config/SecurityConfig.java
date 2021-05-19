@@ -63,8 +63,7 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http.authorizeRequests()
-                .antMatchers("/v1/*").permitAll()
-                .anyRequest().permitAll();
+                .anyRequest().authenticated();
         http.csrf().disable();
     }
 
@@ -72,6 +71,6 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) {
         web
                 .ignoring()
-                .antMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**");
+                .antMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v1/public/pix/**");
     }
 }

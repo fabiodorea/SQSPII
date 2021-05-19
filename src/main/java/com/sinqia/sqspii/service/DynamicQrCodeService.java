@@ -191,6 +191,8 @@ public class DynamicQrCodeService {
 
     @Transactional
     public String createPayloadByIdentifier(String documentId, String tenant) throws Exception {
+        if(tenant != null)
+            TenantContext.setCurrentTenant(tenant);
         UUID uuid = UUID.fromString(documentId);
         DynamicQrCode dynamic = dynamicQrCodeRepository.findByPayloadIdentifier(uuid)
                 .orElseThrow(() -> new BusinessException("Documento não encontrado!"));
@@ -198,7 +200,10 @@ public class DynamicQrCodeService {
         if(!dynamic.getSituation().getDescription().equalsIgnoreCase(Situation.ACTIVE))
             throw new InvalidChargeSituationException("A cobrança não está ativa: " + dynamic.getSituation().getDescription());
 
-        return signQrCodeService.encode(mapper.writeValueAsString(dynamic));
+        String result = signQrCodeService.encode(mapper.writeValueAsString(dynamic));
+
+        TenantContext.clear();
+        return  result;
     }
 
     public DecodeQrCodeResponse decodeQrCode(DecodeQrCodeRequest request) throws Exception {
