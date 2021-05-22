@@ -1,6 +1,7 @@
-package com.sinqia.sqspii.entity;
+package com.sinqia.sqspii.data.multitenancy.entity;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,20 +19,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Entity
 @DynamicUpdate
-@Table(name = "spi_parametro_geral")
-public class Parameter implements Serializable {
+@Table(name = "spi_qrcode_dinamico_log")
+public class AuditDynamicQrCode implements Serializable {
     private static final long serialVersionUID = -665981554740189649L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_par_ger")
+    @Column(name = "id_din_log")
     private Long id;
-
-    @Column(name = "id_ent_par ")
-    private Long idEntPar;
     
-    @Column(name = "nom_hst_url_pyl_qrc", length = 100, nullable = true)
-    private String hostName;
+    @Column(name = "tex_log_ant", nullable = false)
+    private String oldValue;
     
+    @Column(name = "dat_cri_qrc", nullable = false)
+    private LocalDateTime created;
 
 }

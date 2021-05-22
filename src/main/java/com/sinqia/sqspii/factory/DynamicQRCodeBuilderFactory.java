@@ -3,11 +3,11 @@ package com.sinqia.sqspii.factory;
 import com.sinqia.sqspii.context.TenantContext;
 import com.sinqia.sqspii.domain.DynamicQrCodeData;
 import com.sinqia.sqspii.domain.QrCodeField;
-import com.sinqia.sqspii.entity.DynamicQrCode;
+import com.sinqia.sqspii.data.multitenancy.entity.DynamicQrCode;
 
-import com.sinqia.sqspii.entity.Parameter;
+import com.sinqia.sqspii.data.multitenancy.entity.Parameter;
 import com.sinqia.sqspii.enums.EnumBoolean;
-import com.sinqia.sqspii.repository.ParameterRepository;
+import com.sinqia.sqspii.data.multitenancy.repository.ParameterRepository;
 import com.sinqia.sqspii.request.DynamicQrCodeRequest;
 import com.sinqia.sqspii.response.DecodeDynamicQrCodeResponse;
 import com.sinqia.sqspii.util.ValidationUtil;

@@ -13,8 +13,8 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 //import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.stereotype.Component;
 
-import com.sinqia.sqspii.entity.UsuarioDadosAcesso;
-import com.sinqia.sqspii.repository.UsuarioDadosAcessoRepository;
+import com.sinqia.sqspii.data.multitenancy.entity.UsuarioDadosAcesso;
+import com.sinqia.sqspii.data.multitenancy.repository.UsuarioDadosAcessoRepository;
 
 @Component
 public class TenantDataSource implements Serializable {

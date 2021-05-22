@@ -1,6 +1,6 @@
-package com.sinqia.sqspii.repository;
+package com.sinqia.sqspii.data.multitenancy.repository;
 
-import com.sinqia.sqspii.entity.VaultPrivateKey;
+import com.sinqia.sqspii.data.multitenancy.entity.VaultPrivateKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

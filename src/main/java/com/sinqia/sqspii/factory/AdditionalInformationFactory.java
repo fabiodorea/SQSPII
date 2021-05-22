@@ -1,7 +1,7 @@
 package com.sinqia.sqspii.factory;
 
 
-import com.sinqia.sqspii.entity.AdditionalInformation;
+import com.sinqia.sqspii.data.multitenancy.entity.AdditionalInformation;
 import com.sinqia.sqspii.request.DynamicQrCodeRequest;
 
 import java.util.ArrayList;

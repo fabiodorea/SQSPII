@@ -1,6 +1,5 @@
 package com.sinqia.sqspii.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
@@ -8,16 +7,14 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
-import com.sinqia.sqspii.config.JwkAuthorizationServerConfiguration;
-import com.sinqia.sqspii.context.TenantContext;
 import com.sinqia.sqspii.domain.StaticQrCodeData;
-import com.sinqia.sqspii.entity.DigitalCertificate;
-import com.sinqia.sqspii.entity.DynamicQrCode;
+import com.sinqia.sqspii.data.multitenancy.entity.DigitalCertificate;
+import com.sinqia.sqspii.data.multitenancy.entity.DynamicQrCode;
 import com.sinqia.sqspii.exception.InvalidQrCodeStringToDecodeException;
 import com.sinqia.sqspii.exception.UnableToDecodeQrCodeException;
 import com.sinqia.sqspii.factory.DynamicQRCodeBuilderFactory;
 import com.sinqia.sqspii.factory.StaticQRCodeBuilderFactory;
-import com.sinqia.sqspii.repository.DigitalCertificateRepository;
+import com.sinqia.sqspii.data.multitenancy.repository.DigitalCertificateRepository;
 import com.sinqia.sqspii.request.DecodeQrCodeRequest;
 import com.sinqia.sqspii.response.DecodeQrCodeResponse;
 import com.sinqia.sqspii.response.DecodeStaticQrCodeResponse;
@@ -27,9 +24,7 @@ import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +37,6 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.text.ParseException;
 
 @Service

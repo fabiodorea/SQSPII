@@ -1,4 +1,4 @@
-package com.sinqia.sqspii.entity;
+package com.sinqia.sqspii.data.multitenancy.entity;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

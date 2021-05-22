@@ -1,4 +1,4 @@
-package com.sinqia.sqspii.entity;
+package com.sinqia.sqspii.data.multitenancy.entity;
 
 import java.io.Serializable;
 
@@ -69,21 +69,32 @@ public class UsuarioDadosAcesso implements Serializable {
     @Column(name = "cod_tip_bd")
     private String dataBaseTypeCode;
 
+    /**
+     * ‘O’ = Oracle
+     * ‘Q’ = SQL Server
+     * ‘D’ = DB2
+     * @return o driver da conexao
+     * @throws Exception
+     */
     public String getDriverClassName() throws Exception {
-        if(dataBaseTypeCode.equalsIgnoreCase("Q")) {
+        if (dataBaseTypeCode.equalsIgnoreCase("Q")) {
             return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-        }else{
+        } else {
             throw new Exception("Tipo de banco de dados nao implementado: " + dataBaseTypeCode);
         }
     }
 
     public String getUrl() throws Exception {
-        if(server.indexOf(",") > 0) {
-            String servidor = server.split(",")[0];
-            String porta = server.split(",")[1];
-            return "jdbc:sqlserver://"+ servidor +":" + porta + ";databaseName=" + databaseName + ";";
-        }else{
-            throw new Exception("O valor do servidor esta sem a porta: " + server);
+        if (dataBaseTypeCode.equalsIgnoreCase("Q")) {
+            if (server.indexOf(",") > 0) {
+                String servidor = server.split(",")[0];
+                String porta = server.split(",")[1];
+                return "jdbc:sqlserver://" + servidor + ":" + porta + ";databaseName=" + databaseName + ";";
+            } else {
+                return "jdbc:sqlserver://" + server + ";databaseName=" + databaseName + ";";
+            }
+        } else {
+            throw new Exception("Tipo de banco de dados nao implementado: " + dataBaseTypeCode);
         }
     }
 

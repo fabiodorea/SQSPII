@@ -1,4 +1,4 @@
-package com.sinqia.sqspii.repository;
+package com.sinqia.sqspii.data.multitenancy.repository;
 
 import java.util.Optional;
 
@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.sinqia.sqspii.entity.Situation;
+import com.sinqia.sqspii.data.multitenancy.entity.Situation;
 
 public interface SituationRepository  extends JpaRepository<Situation, Long> {
 

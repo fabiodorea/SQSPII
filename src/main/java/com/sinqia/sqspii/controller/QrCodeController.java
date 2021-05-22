@@ -1,6 +1,5 @@
 package com.sinqia.sqspii.controller;
 
-import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 
 import org.slf4j.Logger;
@@ -15,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sinqia.sqspii.entity.DynamicQrCode;
+import com.sinqia.sqspii.data.multitenancy.entity.DynamicQrCode;
 import com.sinqia.sqspii.enums.SuccessCode;
 import com.sinqia.sqspii.request.DecodeQrCodeRequest;
 import com.sinqia.sqspii.request.DynamicQrCodeRequest;
